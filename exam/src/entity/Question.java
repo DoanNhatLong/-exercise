@@ -3,8 +3,6 @@ package entity;
 public class Question {
     String idQuestion;
     String content;
-    Answer answer;
-
 
     public Question() {
     }
@@ -14,11 +12,6 @@ public class Question {
         this.content = content;
     }
 
-    public Question(String idQuestion, String content, Answer answer) {
-        this.idQuestion = idQuestion;
-        this.content = content;
-        this.answer = answer;
-    }
 
     public String toCSV(){
         return getIdQuestion()+","+getContent();
@@ -29,7 +22,6 @@ public class Question {
         return "Question{" +
                 "idQuestion='" + idQuestion + '\'' +
                 ", content='" + content + '\'' +
-                ", answer=" + answer +
                 '}';
     }
 
@@ -49,11 +41,4 @@ public class Question {
         this.content = content;
     }
 
-    public Answer getAnswer() {
-        return answer;
-    }
-
-    public void setAnswer(Answer answer) {
-        this.answer = answer;
-    }
 }

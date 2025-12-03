@@ -4,6 +4,8 @@ public class Answer {
     String idAnswer;
     String idQuestion;
     String result;
+    boolean isCorrect;
+    String trans;
 
     public Answer() {
     }
@@ -14,8 +16,21 @@ public class Answer {
         this.result = result;
     }
 
+    public Answer(String idAnswer, String idQuestion, String result, String trans) {
+        this(idAnswer, idQuestion, result);
+        this.trans=trans;
+    }
+
+
+    public Answer(String idAnswer, String idQuestion, String result, boolean isCorrect) {
+        this.idAnswer = idAnswer;
+        this.idQuestion = idQuestion;
+        this.result = result;
+        this.isCorrect = isCorrect;
+    }
+
     public String toCSV(){
-        return getIdAnswer()+","+getIdQuestion()+","+getResult();
+        return getIdAnswer()+","+getIdQuestion()+","+getResult()+","+(getIsCorrect()?"Đúng":"Sai");
     }
 
     @Override
@@ -23,8 +38,17 @@ public class Answer {
         return "Answer{" +
                 "idAnswer='" + idAnswer + '\'' +
                 ", idQuestion='" + idQuestion + '\'' +
-                ", result='" + result + '\'' +
+                ", result='" + result + '\'' + "," +
+                 trans + '\'' +
                 '}';
+    }
+
+    public boolean getIsCorrect() {
+        return isCorrect;
+    }
+
+    public void setIsCorrect(boolean isCorrect) {
+        this.isCorrect = isCorrect;
     }
 
     public String getIdAnswer() {

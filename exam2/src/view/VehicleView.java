@@ -65,7 +65,7 @@ public class VehicleView {
                 System.out.println("------MENU------");
                 System.out.println("""
                         1. Tìm kiếm theo số hiệu
-                        2. Tìm kiếm theo tên người """);
+                        2. Tìm kiếm theo tên người""");
                 System.out.println("-------Nhập vào để lựa chọn ------");
                 int choice = Integer.parseInt(sc.nextLine());
                 if (choice == 1 || choice == 2) {

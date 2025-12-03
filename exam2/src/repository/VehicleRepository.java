@@ -58,8 +58,8 @@ public class VehicleRepository implements IVehicleRepository {
             boolean flag = false;
             for (Vehicle vehicle : vehicleList) {
                 if (Objects.equals(vehicle.getIdVehicle(), id)) {
+                    flag = true;
                     while (true) {
-                        flag = true;
                         String temp = inputString("Bạn có muốn xóa thật không (Yes/No) ");
                         if (temp.equals("Yes")) {
                             System.out.println("Đã xóa thành công");
