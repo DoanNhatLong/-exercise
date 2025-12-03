@@ -1,0 +1,12 @@
+A001,Q001,JVM,Đúng
+A002,Q001,JRE,Sai
+A003,Q001,JVM,Đúng
+A004,Q001,JE,Sai
+A001,A003,1,Đúng
+A002,A003,2,Đúng
+A003,A003,3,Sai
+A004,A003,4,Sai
+1,12,NNLT,Đúng
+2,12,OOP,Sai
+3,12,Orac,Sai
+4,12,Good,Sai

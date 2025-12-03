@@ -1,0 +1,417 @@
+package ultity;
+
+import view.UserException;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+
+import static controller.FuramaController.sc;
+
+public class Library {
+
+
+    public static Date inputDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        sdf.setLenient(false);
+        while (true) {
+            String s = sc.nextLine().trim();
+            try {
+                return sdf.parse(s);
+            } catch (Exception e) {
+                System.out.println("Ngày không hợp lệ, nhập lại.");
+            }
+        }
+    }
+
+    public static <T> T autoInput(Class<T> clazz) {
+        Scanner sc = new Scanner(System.in);
+
+        T obj;
+        try {
+            obj = clazz.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        for (Field field : clazz.getDeclaredFields()) {
+            field.setAccessible(true);
+            System.out.println("Nhập " + field.getName() + ": ");
+
+            String input = sc.nextLine();
+            Object value = convert(input, field.getType());
+
+            try {
+                field.set(obj, value);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return obj;
+    }
+
+    public static Date inputFutureDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        sdf.setLenient(false);
+        while (true) {
+            String s = sc.nextLine().trim();
+            try {
+                Date d = sdf.parse(s);
+                if (d.after(new Date())) return d;
+                System.out.println("Nhập sai ngày, nhập lại.");
+            } catch (Exception e) {
+                System.out.println("Ngày không hợp lệ, nhập lại.");
+            }
+        }
+    }
+
+
+    private static Object convert(String input, Class<?> type) {
+        return switch (type.getSimpleName()) {
+            case "int", "Integer" -> Integer.parseInt(input);
+            case "double", "Double" -> Double.parseDouble(input);
+            case "long", "Long" -> Long.parseLong(input);
+            case "boolean", "Boolean" -> Boolean.parseBoolean(input);
+            default -> input;
+        };
+    }
+
+
+    public static <T> void saveState(List<T> list, Stack<List<T>> history) {
+        history.push(new ArrayList<>(list));
+    }
+
+    public static <T> boolean undo(List<T> list, Stack<List<T>> history) {
+        if (history.isEmpty()) return false;
+        list.clear();
+        list.addAll(history.pop());
+        return true;
+    }
+
+//    public static void main(String[] args) {
+//        List<String> items = new ArrayList<>();
+//        Stack<List<String>> history = new Stack<>();
+//
+//        items.add("A");
+//        items.add("B");
+//        saveState(items, history);
+//
+//        items.add("C");
+//        System.out.println("Sau khi thêm C: " + items);
+//
+//        boolean undone = undo(items, history);
+//        System.out.println("Undo thành công? " + undone);
+//        System.out.println("Sau undo: " + items);
+//    }
+
+
+    public static <T> List<T> filterList(List<T> list, Predicate<T> condition) {
+        List<T> result = new ArrayList<>();
+        if (list == null || condition == null) return result;
+        for (T item : list) {
+            if (condition.test(item)) result.add(item);
+        }
+        return result;
+    }
+
+    public static void printListPaginated(List<?> list, int pageSize) {
+        if (list == null || list.isEmpty()) {
+            System.out.println("Danh sách rỗng.");
+            return;
+        }
+        int total = list.size();
+        int pages = (int) Math.ceil((double) total / pageSize);
+        for (int i = 0; i < pages; i++) {
+            int start = i * pageSize;
+            int end = Math.min(start + pageSize, total);
+            System.out.println("Trang " + (i + 1) + "/" + pages + ":");
+            for (int j = start; j < end; j++) {
+                System.out.println((j + 1) + ". " + list.get(j));
+            }
+            if (i < pages - 1) {
+                System.out.println("Nhấn Enter để xem trang tiếp theo...");
+                sc.nextLine();
+            }
+        }
+    }
+
+
+    public static String readString(String message, List<String> allowedValues) {
+        String input;
+        while (true) {
+            System.out.print(message + " " + allowedValues + ": ");
+            input = sc.nextLine().trim();
+            if (allowedValues.contains(input)) {
+                return input;
+            }
+            System.out.println("Giá trị không hợp lệ. Vui lòng nhập một trong các giá trị sau: " + allowedValues);
+        }
+    }
+
+    public static boolean readYesNo(String message) {
+        String input;
+        while (true) {
+            System.out.print(message + " [Y/N]: ");
+            input = sc.nextLine().trim().toUpperCase();
+            if (input.equals("Y")) return true;
+            if (input.equals("N")) return false;
+            System.out.println("Giá trị không hợp lệ. Vui lòng nhập Y hoặc N.");
+        }
+    }
+
+    public static String readOptionByIndex(List<String> options) {
+        String input;
+        while (true) {
+            for (int i = 0; i < options.size(); i++) {
+                System.out.println((i + 1) + ". " + options.get(i));
+            }
+            System.out.print("Nhập lựa chọn: ");
+            input = sc.nextLine().trim();
+            if (input.matches("\\d")) {
+                int index = Integer.parseInt(input);
+                if (index >= 1 && index <= options.size()) {
+                    return options.get(index - 1);
+                }
+            }
+        }
+    }
+
+//    public static void deleteEmployee(String id) {
+//        boolean removed = false;
+//        for (ArrayList<? extends Employee> employees : repo.getAll()) {
+//            boolean temp = employees.removeIf(element -> Objects.equals(element.getId(), id));
+//            if (temp) {
+//                removed = true;
+//                break;
+//            }
+//        }
+//        if (removed) {
+//            System.out.println("Đã xóa thành công");
+//        } else {
+//            System.out.println("Không có ID nào trùng");
+//        }
+//    }
+
+    String FILLED;
+
+//    public static void findByID(String id) {
+//        boolean found = false;
+//        for (ArrayList<? extends Employee> employees : repo.getAll()) {
+//            for (Employee employee : employees) {
+//                if (employee.getId().contains(id)) {
+//                    System.out.println(employee);
+//                    found = true;
+//                }
+//            }
+//        }
+//        if (!found) {
+//            System.out.println("Không tìm thấy");
+//        }
+//
+//    }
+
+    public static void showMenu() {
+        final Scanner sc = new Scanner(System.in);
+        final int ADD = 1;
+        final int DISPLAY = 2;
+        final int DELETE = 3;
+        final int FIND = 4;
+        final int PAGE = 5;
+        final int EDIT = 6;
+        final int FILLED = 7;
+        final int CALCULATE = 8;
+        final int EXIT = 9;
+        while (true) {
+            System.out.println("------MENU------");
+            System.out.println("""
+                    1. Thêm
+                    2. Hiển thị
+                    3. Xóa
+                    4. Tìm
+                    5. Hiển thị theo list 3
+                    6. Chỉnh sửa
+                    7. Lọc
+                    8. Tính toán
+                    9. Thoát chương trình""");
+            System.out.println("-------Nhập vào để lựa chọn ------");
+            int choice = Integer.parseInt(sc.nextLine());
+            switch (choice) {
+                case ADD -> {
+
+                }
+                case DISPLAY -> {
+
+                }
+                case DELETE -> {
+
+                }
+                case FIND -> {
+
+                }
+                case PAGE -> {
+
+                }
+                case EDIT -> {
+
+                }
+                case CALCULATE -> {
+
+                }
+                case FILLED -> {
+
+                }
+                case EXIT -> {
+                    return;
+                }
+
+            }
+        }
+
+    }
+
+//    public static void editScore(String id, double change) {
+//        boolean flag = false;
+//        for (Person person : repo.getAll().get(0)) {
+//            if (Objects.equals(person.getId(), id)) {
+//                ((Student) person).setScore(change);
+//                flag = true;
+//            }
+//        }
+//        System.out.println(flag ? "Đã sửa thành công " : "Không tìm thấy");
+//    }
+
+//    @Override
+//    public void addEmployee(Employee employee) {
+//        if (employee instanceof Designer) {
+//            designerList.add((Designer) employee);
+//        } else if (employee instanceof Developer) {
+//            developerList.add((Developer) employee);
+//        } else if (employee instanceof Manager) {
+//            managerList.add((Manager) employee);
+//        }
+//    }
+
+//    public void deletePerson(String name) {
+//        boolean flag = false;
+//        for (ArrayList<? extends Person> list : codeGymList) {
+//            boolean removed = list.removeIf(element -> Objects.equals(element.getName(), name));
+//            if (removed) {
+//                flag = true;
+//            } ;
+//        }
+//        if (flag) {
+//            System.out.println("Đã xóa thành công");
+//        } else {
+//            System.out.println("Không tìm thấy");
+//        }
+//    }
+//
+//    public List<ArrayList<? extends Employee>> getAll() {
+//        return employee;
+//    }
+
+    public static class Validator {
+        public void validateEmployeeCode(String code) throws UserException {
+            if (!Pattern.matches("NV-\\d{4}", code)) {
+                throw new UserException("Mã nhân viên không hợp lệ. Định dạng NV-YYYY.");
+            }
+        }
+
+        public void validateName(String name) throws UserException {
+            if (!Pattern.matches("([A-Z][a-z]+\\s?)+", name)) {
+                throw new UserException("Tên nhân viên không hợp lệ. Viết hoa chữ cái đầu mỗi từ.");
+            }
+        }
+
+        public void validateBirthDate(String birthDateStr) throws UserException {
+            try {
+                LocalDate birthDate = LocalDate.parse(birthDateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                int age = Period.between(birthDate, LocalDate.now()).getYears();
+                if (age < 18) {
+                    throw new UserException("Nhân viên phải đủ 18 tuổi.");
+                }
+            } catch (DateTimeParseException e) {
+                throw new UserException("Ngày sinh không hợp lệ. Định dạng yyyy-MM-dd.");
+            }
+        }
+
+        public void validateCMND(String cmnd) throws UserException {
+            if (!Pattern.matches("\\d{9}|\\d{12}", cmnd)) {
+                throw new UserException("CMND phải đủ 9 hoặc 12 số.");
+            }
+        }
+
+        public void validatePhone(String phone) throws UserException {
+            if (!Pattern.matches("0\\d{9}", phone)) {
+                throw new UserException("Số điện thoại phải bắt đầu từ 0 và đủ 10 số.");
+            }
+        }
+
+        public void validateSalary(double salary) throws UserException {
+            if (salary <= 0) {
+                throw new UserException("Lương phải lớn hơn 0.");
+            }
+        }
+
+        public void validateEmail(String email) throws UserException {
+            if (!Pattern.matches("\\w+@\\w+(\\.\\w+)+", email)) {
+                throw new UserException("Email không hợp lệ. Ví dụ: example@gmail.com");
+            }
+        }
+
+        public void validateEmail1(String email) throws UserException {
+            if (!email.matches(".+@gmail\\.com")) {
+                throw new UserException("Email không hợp lệ. Phải có dạng _@gmail.com");
+            }
+        }
+
+        public static class UserException extends Exception {
+            public UserException(String message) {
+                super(message);
+            }
+        }
+
+
+    }
+
+    public static class EmployeeFileHandler {
+
+        private static final String FILE_PATH = "data/employee.csv";
+
+        public static void saveEmployee(String code, String name, String birthDate, String cmnd,
+                                        String phone, double salary, String email) {
+            try {
+                File dir = new File("data");
+                if (!dir.exists()) dir.mkdirs();
+
+                FileWriter writer = new FileWriter(FILE_PATH, true);
+                writer.write(String.join(",", code, name, birthDate, cmnd, phone, String.valueOf(salary), email));
+                writer.write("\n");
+                writer.close();
+                System.out.println("Đã lưu nhân viên vào file.");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+
+}
+
+
+
+
+
+
+
